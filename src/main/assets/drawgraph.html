@@ -1,0 +1,390 @@
+<html>
+<head>
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<script>
+	self=this;
+	imageUrl="";
+	aTimeSeries = [];
+	aDates = [];
+	self.aIndicatorData={};
+	self.searchText=androidMethod.getSymbol();
+	self.sTimeSeriesData = JSON.parse(androidMethod.getStockdata());
+	Math.log10 = function (x) { return Math.log(x) / Math.LN10; };
+
+ function getChartImageUrl(){
+        return imageUrl+"";
+    }
+        function setDates(){
+       if (!!self.sTimeSeriesData && !aDates) {
+            var oStockData = self.sTimeSeriesData;
+            var dCurrDate = "";
+            var sTimeSeries = "Time Series (Daily)";
+            for (var i = 0; i < 135; i++) {
+                dCurrDate = Object.keys(oStockData["Time Series (Daily)"])[i];
+                if (!!dCurrDate) {
+                    aDates.push(dCurrDate.split("-")[1] + "/" + dCurrDate.split("-")[2]);
+                } else {
+                    break;
+                }
+
+            }
+        }
+        }
+
+        function getImageUrlFromHighChart() {
+        if (!!aChart) {
+
+                var obj = {},
+
+                exportUrl = "http://export.highcharts.com/";
+                obj.options = JSON.stringify(aChart.userOptions);
+                obj.type = 'image/png';
+                obj.async = true;
+
+                $.ajax({
+                    type: 'post',
+                    url: 'http://export.highcharts.com/',
+                    data: obj,
+                    success: function (data) {
+                        imageUrl = exportUrl + data;
+                    }
+                });
+
+
+
+        }
+    }
+
+	function returnStuff(x)
+	{return x;}
+
+	function drawhsgraph(){
+	setHighStocks();
+	}
+	function drawgraph(){
+
+		//self.searchText=androidMethod.getSymbol();
+		//console.log(androidMethod.setStockdata());
+		//getRemoteData(self.searchText);
+		//self.sTimeSeriesData = JSON.parse(androidMethod.getStockdata());
+		setPriceVolumeGraph();
+		getImageUrlFromHighChart();
+		androidMethod.hidePgb();
+	}
+	    function getRemoteData(query) {
+    
+        $.ajax('http://sharemarkethw-env.us-east-1.elasticbeanstalk.com/timeseries?symbol=' + query, {
+            crossDomain: true,
+            error: function () { alert('Server error!. Cant fetch stock data'); },
+            success: function (data) { self.sTimeSeriesData = data;setPriceVolumeGraph(); }
+        });
+        
+    }
+    function setPriceVolumeGraph() {
+        if (!!self.sTimeSeriesData) {
+            var oStockData = self.sTimeSeriesData;
+            var dCurrDate = "";
+            var sTimeSeries = "Time Series (Daily)";
+            aShareVal = [], aVolumeVal = [], aDates = [];
+            for (var i = 0; i < 135; i++) {
+                dCurrDate = Object.keys(oStockData["Time Series (Daily)"])[i];
+                if (!!dCurrDate) {
+                    aDates.push(dCurrDate.split("-")[1] + "/" + dCurrDate.split("-")[2]);
+                    aShareVal.push(parseFloat(oStockData[sTimeSeries][dCurrDate]["4. close"]));
+                    aVolumeVal.push(parseFloat(oStockData[sTimeSeries][dCurrDate]["5. volume"]));
+                } else {
+                    break;
+                }
+                
+            }
+            aVolumeMax = Math.floor(parseInt(Math.max.apply(null, aVolumeVal)) / Math.pow(10, Math.floor((Math.log10(parseInt(Math.max.apply(null, aVolumeVal))))))) * Math.pow(10, Math.floor((Math.log10(parseInt(Math.max.apply(null, aVolumeVal))))));
+            sSymbol = oStockData["Meta Data"]["2. Symbol"];
+            drawAreaChart();
+        }
+    }
+    function drawAreaChart() {
+        var d = new Date();
+        var today = [d.getMonth() + 1, d.getDate(), d.getFullYear()].join('/');
+        aChart = Highcharts.chart('id_highchartgraph', {
+            chart: {
+                zoomType: 'x',
+                panning: true,
+                panKey: 'shift'
+            },
+            title: {
+                text: self.searchText + ' Stock Price and Volume'
+            },
+            subtitle: {
+                text: '<a href="https://www.alphavantage.co/" target="_blank" class=>Source : Alpha Vantage</a>',
+                useHTML: true
+            },
+            xAxis: {
+                type:'datetime',
+                categories: aDates.slice().reverse(),
+                tickInterval: 5,
+                tickPixelInterval: 20
+            }, yAxis: [{
+                //min: parseInt(Math.min.apply(null, aShareVal) - 10) > 0 ? parseInt(Math.min.apply(null, aShareVal) - 10) : 0,
+                min: 0,
+                startOnTick: true,
+                endOnTick: true,
+                title: {
+                    text: 'Stock Price'
+                },
+                labels: {
+                    format: '{value}'
+                }
+            }, {
+                lineWidth: 1,
+                tickInterval: aVolumeMax / 2,
+                endOnTick: false,
+                opposite: true,
+                title: {
+                    text: 'Volume'
+                }
+            }], legend: {
+                enabled: true,
+            },
+            tooltip: {
+                xDateFormat: '%m/%d'
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0,
+                    borderWidth: 0,
+                    groupPadding: 0,
+                    shadow: false,
+                    pointWidth: 0.8,
+
+                }
+            },
+            series: [{
+                type: 'area',
+                data: aShareVal.slice().reverse(),
+                lineColor: Highcharts.getOptions().colors[11],
+                color: '#0000FF',
+                fillOpacity: 0.1,
+                lineWidth: 0.5,
+                name: "Price"
+
+            }, {
+                type: 'column',
+                name: "Volume",
+                yAxis: 1,
+                // borderColor: '#303030',
+                color: Highcharts.getOptions().colors[8],
+                data: aVolumeVal.slice().reverse()
+
+            }]
+        });
+
+    }
+    function setHighStocks() {
+
+        var dCurrDate = "";
+        var aTemp = [];
+        var oStockData = self.sTimeSeriesData;
+        if (!!oStockData) {
+            if (aTimeSeries.length == 0) {
+
+                for (var i = 0; i < 1000; i++) {
+                    aTemp = [];
+                    dCurrDate = Object.keys(oStockData["Time Series (Daily)"])[i];
+                    if (!dCurrDate) { break; }
+                    aTemp.push(new Date(dCurrDate).getTime());
+                    aTemp.push(parseFloat(oStockData["Time Series (Daily)"][dCurrDate]["4. close"]));
+                    aTimeSeries.push(aTemp);
+                }
+            }
+
+            Highcharts.stockChart('id_highchartgraph', {
+                rangeSelector: {
+
+                    buttons: [{
+                        type: 'month',
+                        count: 1,
+                        text: '1m'
+                    }, {
+                        type: 'month',
+                        count: 3,
+                        text: '3m'
+                    }, {
+                        type: 'month',
+                        count: 6,
+                        text: '6m'
+                    }, {
+                        type: 'year',
+                        count: 1,
+                        text: '1y'
+                    }, {
+                        type: 'all',
+                        text: 'All'
+                    }],
+                    selected: 0
+                },
+
+                title: {
+                    text: self.searchText + ' Stock Price'
+                },
+                subtitle: {
+                    text: '<a href="https://www.alphavantage.co/" target="_blank" class=>Source : Alpha Vantage</a>',
+                    useHTML: true
+                },
+                xAxis: {
+                    type: 'datetime'
+                },
+                yAxis: {
+                    title: {
+                        text: 'Stock Value'
+                    }
+                },
+                series: [{
+                    type: 'area',
+                    name: self.searchText,
+                    data: aTimeSeries.slice().reverse(),
+                    tooltip: {
+                        valueDecimals: 2
+                    }
+                }]
+            });
+        }
+    }
+
+      //Indicators
+    function webViewIndicatorLoad(symbol,indicator){
+            self.searchText=symbol;
+            setDates();
+            if(indicator == 'STOCH'){
+            loadIndicatorChart(indicator,2);
+            }else if(indicator == 'BBANDS'||indicator == 'MACD'){
+               loadIndicatorChart(indicator,3);
+            }else{
+                loadIndicatorChart(indicator,1);
+            }
+    }
+        function loadIndicatorChart(indicator, numofplots) {
+        var sIndicator = indicator;
+        var iNumofplots = numofplots;
+        if (!self.aIndicatorData[indicator]) {
+            if (!!self.searchText) {
+                 $.ajax('http://sharemarkethw-env.us-east-1.elasticbeanstalk.com/indicator?symbol=' + self.searchText + '&indicator=' + sIndicator, {
+                 crossDomain: true,
+                 error: function () {  },
+                success: function (data) {
+                 self.aIndicatorData[indicator] = data;
+                 drawIndicatorChart(self.aIndicatorData[indicator], sIndicator, iNumofplots);
+                  }
+               });
+
+
+            }
+        }else {
+            drawIndicatorChart(self.aIndicatorData[indicator], sIndicator, iNumofplots)
+        }
+    }
+
+    function drawIndicatorChart(sJsonResponse, sIndicatorName, iNumberofPlots) {
+        var aPlotSeries = [];
+        var oPlotSeries = {};
+        var aChartData = getIndicatorChartData(sJsonResponse, sIndicatorName, iNumberofPlots);
+        for (var i = 0; i < iNumberofPlots; i++) {
+            oPlotSeries = {};
+            oPlotSeries.type = 'line',
+                oPlotSeries.data = aChartData.indicatorData[i].slice().reverse(),
+                oPlotSeries.marker = {},
+                oPlotSeries.marker.enabled = false,
+                oPlotSeries.marker.radius = 2,
+                oPlotSeries.lineColor = Highcharts.getOptions().colors[i],
+                oPlotSeries.color = Highcharts.getOptions().colors[i],
+                oPlotSeries.fillOpacity = 0.5,
+                oPlotSeries.lineWidth = 0.8,
+                oPlotSeries.name = aChartData.labels[i],
+                aPlotSeries.push(oPlotSeries);
+        }
+        var iYmin = "";
+        if (sIndicatorName == "STOCH") {
+            iYmin = parseInt(Math.min.apply(null, aChartData.indicatorData[1]) - 5);
+        } else if (sIndicatorName == "BBANDS") {
+            iYmin = parseInt(Math.min.apply(null, aChartData.indicatorData[1]) - 5);
+        } else {
+            iYmin = parseInt(Math.min.apply(null, aChartData.indicatorData[0]) - 5);
+        }
+        aChart = Highcharts.chart('id_highchartgraph', {
+            chart: {
+                zoomType: 'x',
+                panning: true,
+                panKey: 'shift'
+            },
+            title: {
+                text: aChartData.indicatorTitle
+            },
+            subtitle: {
+                text: '<a href="https://www.alphavantage.co/" target="_blank">Source : Alpha Vantage</a>',
+                useHTML: true
+            },
+            xAxis: {
+                type: 'datetime',
+                categories: aDates.slice().reverse(),
+                tickInterval: 5,
+                tickPixelInterval: 20
+            }, yAxis: [{
+                min: iYmin,
+                startOnTick: false,
+
+                endOnTick: true,
+                title: {
+                    text: sIndicatorName
+                },
+                labels: {
+                    format: '{value}'
+                }
+            }], legend: {
+                enabled: true,
+            },
+            tooltip: {
+                xDateFormat: '%m/%d'
+            },
+            series: aPlotSeries
+        });
+        getImageUrlFromHighChart();
+        androidMethod.hidePgb();
+    }
+function getIndicatorChartData(sJsonResponse, sIndicatorName, iNumberofPlots) {
+        //get sixmonths values
+        var aIndicatorValues = [];
+        for (var j = 0; j < iNumberofPlots; j++) {
+            aIndicatorValues.push([]);
+        }
+        if (!!sJsonResponse) {
+            if (!!sJsonResponse[Object.keys(sJsonResponse)[1]]) {
+                var aDateKeys = Object.keys(sJsonResponse[Object.keys(sJsonResponse)[1]]);
+                var i = 0, sDateValue, iNumberofProperties, dDate, aProperties, sIndicatorTitle;
+                sIndicatorTitle = sJsonResponse[Object.keys(sJsonResponse)[0]]["2: Indicator"];
+                aProperties = Object.keys(sJsonResponse[Object.keys(sJsonResponse)[1]][aDateKeys[1]]);
+                while (i < 135) {
+                    //dDate = new Date(aDateKeys[i]);
+                    sDateValue = sJsonResponse[Object.keys(sJsonResponse)[1]][aDateKeys[i++]];
+                    if (!!sDateValue) {
+                        for (var j = 0; j < iNumberofPlots; j++) {
+                            aIndicatorValues[j].push((parseFloat(sDateValue[aProperties[j]])).toFixed(2) / 1);
+                        }
+                    } else {
+                        break;
+                    }
+
+                }
+            }
+        }
+        return { indicatorData: aIndicatorValues, labels: aProperties, indicatorTitle: sIndicatorTitle };
+    }
+</script>
+<body>
+<!--<div id="id_areagraph" style="visibility:hidden"><button onclick="drawgraph()">area</button></div>-->
+<!--<div id="id_stock" style="visibility:hidden"><button onclick="drawhsgraph()">highstock</button></div>-->
+<div id="id_highchartgraph"></div>
+<div id="id_highstock"></div>
+	</body>
+</html>

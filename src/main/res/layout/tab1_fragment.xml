@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/errortvtab1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="TextView"
+            android:visibility="invisible"/>
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stock Details"
+            android:textSize="30sp"
+            android:textStyle="normal" />
+
+        <ImageButton
+            android:id="@+id/favorites"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="12dp"
+            android:layout_marginRight="12dp"
+            android:adjustViewBounds="true"
+            android:background="@color/white"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/empty" />
+
+        <ImageButton
+            android:id="@+id/fb"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="28dp"
+            android:layout_marginRight="28dp"
+            android:layout_toLeftOf="@+id/favorites"
+            android:layout_toStartOf="@+id/favorites"
+            android:adjustViewBounds="true"
+            android:background="@color/white"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/facebook" />
+
+        <ProgressBar
+            android:id="@+id/stockProgressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"/>
+        <ListView
+
+            android:id="@+id/stocklist"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_below="@+id/stockProgressBar">
+
+        </ListView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/stocklist"
+            android:layout_marginTop="5dp"
+            android:id="@+id/indicatorlayout">
+
+            <TextView
+                android:id="@+id/titleindicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/stocklist"
+                android:text="Indicators"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/indicators"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/stocklist"
+                android:layout_gravity="center"
+                android:layout_marginStart="40dp"
+                android:layout_toRightOf="@+id/titleindicator"
+                android:textAlignment="center" />
+
+            <Button
+                android:id="@+id/change"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/stocklist"
+                android:layout_marginStart="30dp"
+                android:layout_toRightOf="@+id/indicators"
+                android:background="@android:color/transparent"
+                android:text="Change"
+                android:textAlignment="center" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/pgbCharts"
+            android:layout_below="@+id/indicatorlayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:visibility="invisible"
+             />
+        <WebView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/pgbCharts"
+            android:layout_marginTop="2dp"
+            android:id="@+id/graphview"/>
+    </RelativeLayout>
+
+
+
+</ScrollView>
